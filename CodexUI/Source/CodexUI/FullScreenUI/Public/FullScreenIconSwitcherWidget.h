@@ -27,6 +27,8 @@ public:
 protected:
 	virtual void NativeConstruct() override;
 
+	virtual TSharedRef<SWidget> RebuildWidget() override;
+
 	virtual FReply NativeOnMouseButtonDown(
 		const FGeometry& InGeometry,
 		const FPointerEvent& InMouseEvent) override;

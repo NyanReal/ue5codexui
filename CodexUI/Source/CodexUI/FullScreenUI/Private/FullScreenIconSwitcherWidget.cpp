@@ -26,67 +26,79 @@ void UFullScreenIconSwitcherWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+TSharedRef<SWidget> UFullScreenIconSwitcherWidget::RebuildWidget()
+{
 	if (!WidgetTree)
 	{
-		return;
+		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"));
 	}
 
-	WidgetTree->RootWidget = nullptr;
-	RootCanvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("RootCanvas"));
-	WidgetTree->RootWidget = RootCanvas;
+	RootCanvas = nullptr;
+	CenterBox = nullptr;
+	TitleText = nullptr;
+	ImageButton = nullptr;
+	IconImage = nullptr;
 
-	CenterBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("CenterBox"));
-	if (CenterBox)
+	if (WidgetTree)
 	{
-		if (UCanvasPanelSlot* CanvasSlot = RootCanvas->AddChildToCanvas(CenterBox))
+		WidgetTree->RootWidget = nullptr;
+		RootCanvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("RootCanvas"));
+
+		if (RootCanvas)
 		{
-			CanvasSlot->SetAnchors(FAnchors(0.5f, 0.5f));
-			CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-			CanvasSlot->SetPosition(FVector2D(0.f, 0.f));
-			CanvasSlot->SetSize(FVector2D(0.f, 0.f));
-		}
-	}
+			WidgetTree->RootWidget = RootCanvas;
 
-	if (CenterBox)
-	{
-		TitleText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("TitleText"));
-		if (TitleText)
-		{
-			TitleText->SetText(FText::FromString(TEXT("Icon Preview")));
-			TitleText->SetJustification(ETextJustify::Center);
-
-			if (UVerticalBoxSlot* VBoxSlot = CenterBox->AddChildToVerticalBox(TitleText))
+			CenterBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("CenterBox"));
+			if (CenterBox)
 			{
-				VBoxSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 16.f));
-				VBoxSlot->SetHorizontalAlignment(HAlign_Center);
-			}
-		}
-	}
+				if (UCanvasPanelSlot* CanvasSlot = RootCanvas->AddChildToCanvas(CenterBox))
+				{
+					CanvasSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+					CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+					CanvasSlot->SetPosition(FVector2D(0.f, 0.f));
+					CanvasSlot->SetSize(FVector2D(0.f, 0.f));
+				}
 
-	if (CenterBox)
-	{
-		ImageButton = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), TEXT("ImageButton"));
-		if (ImageButton)
-		{
-			ImageButton->OnClicked.AddDynamic(this, &UFullScreenIconSwitcherWidget::HandleImageButtonClicked);
+				TitleText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("TitleText"));
+				if (TitleText)
+				{
+					TitleText->SetText(FText::FromString(TEXT("Icon Preview")));
+					TitleText->SetJustification(ETextJustify::Center);
 
-			IconImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("IconImage"));
-			if (IconImage)
-			{
-				ImageButton->AddChild(IconImage);
-			}
+					if (UVerticalBoxSlot* VBoxSlot = CenterBox->AddChildToVerticalBox(TitleText))
+					{
+						VBoxSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 16.f));
+						VBoxSlot->SetHorizontalAlignment(HAlign_Center);
+					}
+				}
 
-			if (UVerticalBoxSlot* VBoxSlot = CenterBox->AddChildToVerticalBox(ImageButton))
-			{
-				VBoxSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 0.f));
-				VBoxSlot->SetHorizontalAlignment(HAlign_Center);
+				ImageButton = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), TEXT("ImageButton"));
+				if (ImageButton)
+				{
+					ImageButton->OnClicked.AddDynamic(this, &UFullScreenIconSwitcherWidget::HandleImageButtonClicked);
+
+					IconImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("IconImage"));
+					if (IconImage)
+					{
+						ImageButton->AddChild(IconImage);
+					}
+
+					if (UVerticalBoxSlot* VBoxSlot = CenterBox->AddChildToVerticalBox(ImageButton))
+					{
+						VBoxSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 0.f));
+						VBoxSlot->SetHorizontalAlignment(HAlign_Center);
+					}
+				}
 			}
 		}
 	}
 
 	UpdateIconTexture();
 
-	SetVisibility(ESlateVisibility::Visible);
+	return Super::RebuildWidget();
 }
 
 FReply UFullScreenIconSwitcherWidget::NativeOnMouseButtonDown(

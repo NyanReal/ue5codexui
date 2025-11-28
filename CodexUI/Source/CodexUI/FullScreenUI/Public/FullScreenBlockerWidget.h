@@ -24,6 +24,8 @@ public:
 protected:
 	virtual void NativeConstruct() override;
 
+	virtual TSharedRef<SWidget> RebuildWidget() override;
+
 	// 마우스 입력 가로채기
 	virtual FReply NativeOnMouseButtonDown(
 		const FGeometry& InGeometry,

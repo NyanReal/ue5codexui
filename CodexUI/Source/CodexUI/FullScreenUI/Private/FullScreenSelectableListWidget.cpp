@@ -42,42 +42,58 @@ void USelectableListItemWidget::SetupItem(int32 InIndex, const FText& InLabel, U
 void USelectableListItemWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+}
 
+TSharedRef<SWidget> USelectableListItemWidget::RebuildWidget()
+{
 	if (!WidgetTree)
 	{
-		return;
+		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"));
 	}
 
-	WidgetTree->RootWidget = nullptr;
-	RootBox = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("RootBox"));
-	WidgetTree->RootWidget = RootBox;
+	RootBox = nullptr;
+	IconImage = nullptr;
+	LabelText = nullptr;
 
-	IconImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("IconImage"));
-	if (IconImage)
+	if (WidgetTree)
 	{
-		if (IconTexture)
-		{
-			IconImage->SetBrushFromTexture(IconTexture, true);
-		}
+		WidgetTree->RootWidget = nullptr;
+		RootBox = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("RootBox"));
 
-		if (UHorizontalBoxSlot* HSlot = RootBox->AddChildToHorizontalBox(IconImage))
+		if (RootBox)
 		{
-			HSlot->SetPadding(FMargin(4.f, 4.f, 8.f, 4.f));
-			HSlot->SetVerticalAlignment(VAlign_Center);
+			WidgetTree->RootWidget = RootBox;
+
+			IconImage = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), TEXT("IconImage"));
+			if (IconImage)
+			{
+				if (IconTexture)
+				{
+					IconImage->SetBrushFromTexture(IconTexture, true);
+				}
+
+				if (UHorizontalBoxSlot* HSlot = RootBox->AddChildToHorizontalBox(IconImage))
+				{
+					HSlot->SetPadding(FMargin(4.f, 4.f, 8.f, 4.f));
+					HSlot->SetVerticalAlignment(VAlign_Center);
+				}
+			}
+
+			LabelText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("LabelText"));
+			if (LabelText)
+			{
+				LabelText->SetText(Label);
+
+				if (UHorizontalBoxSlot* HSlot = RootBox->AddChildToHorizontalBox(LabelText))
+				{
+					HSlot->SetPadding(FMargin(0.f, 4.f, 4.f, 4.f));
+					HSlot->SetVerticalAlignment(VAlign_Center);
+				}
+			}
 		}
 	}
 
-	LabelText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("LabelText"));
-	if (LabelText)
-	{
-		LabelText->SetText(Label);
-
-		if (UHorizontalBoxSlot* HSlot = RootBox->AddChildToHorizontalBox(LabelText))
-		{
-			HSlot->SetPadding(FMargin(0.f, 4.f, 4.f, 4.f));
-			HSlot->SetVerticalAlignment(VAlign_Center);
-		}
-	}
+	return Super::RebuildWidget();
 }
 
 FReply USelectableListItemWidget::NativeOnMouseButtonDown(
@@ -123,67 +139,76 @@ void UFullScreenSelectableListWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	SetVisibility(ESlateVisibility::Visible);
+}
+
+TSharedRef<SWidget> UFullScreenSelectableListWidget::RebuildWidget()
+{
 	if (!WidgetTree)
 	{
-		return;
+		WidgetTree = NewObject<UWidgetTree>(this, TEXT("WidgetTree"));
 	}
 
-	WidgetTree->RootWidget = nullptr;
-	RootCanvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("RootCanvas"));
-	WidgetTree->RootWidget = RootCanvas;
+	RootCanvas = nullptr;
+	MainBox = nullptr;
+	SelectedIndexText = nullptr;
+	ListScrollBox = nullptr;
+	ButtonBox = nullptr;
+	ConfirmButton = nullptr;
+	ConfirmButtonLabel = nullptr;
+	CloseButton = nullptr;
+	CloseButtonLabel = nullptr;
 
-	MainBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("MainBox"));
-	if (MainBox)
+	if (WidgetTree)
 	{
-		if (UCanvasPanelSlot* CanvasSlot = RootCanvas->AddChildToCanvas(MainBox))
-		{
-			CanvasSlot->SetAnchors(FAnchors(0.5f, 0.5f));
-			CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
-			CanvasSlot->SetPosition(FVector2D(0.f, 0.f));
-			CanvasSlot->SetSize(FVector2D(600.f, 400.f));
-		}
-	}
+		WidgetTree->RootWidget = nullptr;
+		RootCanvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("RootCanvas"));
 
-	if (MainBox)
-	{
-		SelectedIndexText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("SelectedIndexText"));
-		if (SelectedIndexText)
+		if (RootCanvas)
 		{
-			if (UVerticalBoxSlot* VBoxSlot = MainBox->AddChildToVerticalBox(SelectedIndexText))
+			WidgetTree->RootWidget = RootCanvas;
+
+			MainBox = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("MainBox"));
+			if (MainBox)
 			{
-				VBoxSlot->SetPadding(FMargin(4.f, 4.f, 4.f, 8.f));
-				VBoxSlot->SetHorizontalAlignment(HAlign_Left);
-			}
+				if (UCanvasPanelSlot* CanvasSlot = RootCanvas->AddChildToCanvas(MainBox))
+				{
+					CanvasSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+					CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+					CanvasSlot->SetPosition(FVector2D(0.f, 0.f));
+					CanvasSlot->SetSize(FVector2D(600.f, 400.f));
+				}
 
-			UpdateSelectedIndexText();
-		}
-	}
+				SelectedIndexText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("SelectedIndexText"));
+				if (SelectedIndexText)
+				{
+					if (UVerticalBoxSlot* VBoxSlot = MainBox->AddChildToVerticalBox(SelectedIndexText))
+					{
+						VBoxSlot->SetPadding(FMargin(4.f, 4.f, 4.f, 8.f));
+						VBoxSlot->SetHorizontalAlignment(HAlign_Left);
+					}
+				}
 
-	if (MainBox)
-	{
-		ListScrollBox = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ListScrollBox"));
-		if (ListScrollBox)
-		{
-			if (UVerticalBoxSlot* VBoxSlot = MainBox->AddChildToVerticalBox(ListScrollBox))
-			{
-				VBoxSlot->SetPadding(FMargin(4.f, 0.f, 4.f, 8.f));
-				VBoxSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
-			}
+				ListScrollBox = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("ListScrollBox"));
+				if (ListScrollBox)
+				{
+					if (UVerticalBoxSlot* VBoxSlot = MainBox->AddChildToVerticalBox(ListScrollBox))
+					{
+						VBoxSlot->SetPadding(FMargin(4.f, 0.f, 4.f, 8.f));
+						VBoxSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+					}
+				}
 
-			BuildListItems();
-		}
-	}
-
-	if (MainBox)
-	{
-		ButtonBox = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("ButtonBox"));
-		if (ButtonBox)
-		{
-			if (UVerticalBoxSlot* VBoxSlot = MainBox->AddChildToVerticalBox(ButtonBox))
-			{
-				VBoxSlot->SetPadding(FMargin(4.f, 8.f, 4.f, 4.f));
-				VBoxSlot->SetHorizontalAlignment(HAlign_Right);
-				VBoxSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+				ButtonBox = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass(), TEXT("ButtonBox"));
+				if (ButtonBox)
+				{
+					if (UVerticalBoxSlot* VBoxSlot = MainBox->AddChildToVerticalBox(ButtonBox))
+					{
+						VBoxSlot->SetPadding(FMargin(4.f, 8.f, 4.f, 4.f));
+						VBoxSlot->SetHorizontalAlignment(HAlign_Right);
+						VBoxSlot->SetSize(FSlateChildSize(ESlateSizeRule::Automatic));
+					}
+				}
 			}
 		}
 	}
@@ -232,7 +257,14 @@ void UFullScreenSelectableListWidget::NativeConstruct()
 		}
 	}
 
-	SetVisibility(ESlateVisibility::Visible);
+	if (ListScrollBox)
+	{
+		BuildListItems();
+	}
+
+	UpdateSelectedIndexText();
+
+	return Super::RebuildWidget();
 }
 
 void UFullScreenSelectableListWidget::BuildListItems()
