@@ -58,6 +58,7 @@ TSharedRef<SWidget> UFullScreenMessageWidget::RebuildWidget()
 					CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
 					CanvasSlot->SetPosition(FVector2D(0.f, 0.f));
 					CanvasSlot->SetSize(FVector2D(0.f, 0.f));
+					CanvasSlot->SetAutoSize(true);
 				}
 
 				CenterText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("CenterText"));
